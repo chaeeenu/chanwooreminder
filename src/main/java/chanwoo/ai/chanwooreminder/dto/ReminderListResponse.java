@@ -1,6 +1,6 @@
 package chanwoo.ai.chanwooreminder.dto;
 
-import chanwoo.ai.chanwooreminder.entity.ReminderList;
+import chanwoo.ai.chanwooreminder.domain.ReminderList;
 import lombok.*;
 
 @Getter @Setter

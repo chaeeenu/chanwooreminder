@@ -1,7 +1,7 @@
 package chanwoo.ai.chanwooreminder.dto;
 
-import chanwoo.ai.chanwooreminder.entity.Priority;
-import chanwoo.ai.chanwooreminder.entity.Reminder;
+import chanwoo.ai.chanwooreminder.domain.Priority;
+import chanwoo.ai.chanwooreminder.domain.Reminder;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalTime;

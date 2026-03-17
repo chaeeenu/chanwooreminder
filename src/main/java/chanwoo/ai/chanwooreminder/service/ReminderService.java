@@ -2,9 +2,9 @@ package chanwoo.ai.chanwooreminder.service;
 
 import chanwoo.ai.chanwooreminder.dto.ReminderRequest;
 import chanwoo.ai.chanwooreminder.dto.ReminderResponse;
-import chanwoo.ai.chanwooreminder.entity.Priority;
-import chanwoo.ai.chanwooreminder.entity.Reminder;
-import chanwoo.ai.chanwooreminder.entity.ReminderList;
+import chanwoo.ai.chanwooreminder.domain.Priority;
+import chanwoo.ai.chanwooreminder.domain.Reminder;
+import chanwoo.ai.chanwooreminder.domain.ReminderList;
 import chanwoo.ai.chanwooreminder.repository.ReminderListRepository;
 import chanwoo.ai.chanwooreminder.repository.ReminderRepository;
 import lombok.RequiredArgsConstructor;
@@ -63,14 +63,10 @@ public class ReminderService {
     public ReminderResponse create(Long listId, ReminderRequest request) {
         ReminderList list = listRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("List not found: " + listId));
-        Reminder r = Reminder.builder()
-                .title(request.getTitle())
-                .memo(request.getMemo())
-                .dueDate(request.getDueDate())
-                .dueTime(request.getDueTime())
-                .priority(request.getPriority() != null ? request.getPriority() : Priority.NONE)
-                .list(list)
-                .build();
+        Reminder r = Reminder.create(
+                request.getTitle(), request.getMemo(),
+                request.getDueDate(), request.getDueTime(),
+                request.getPriority(), list);
         r = reminderRepository.save(r);
         return ReminderResponse.from(r);
     }
@@ -79,19 +75,15 @@ public class ReminderService {
     public ReminderResponse update(Long id, ReminderRequest request) {
         Reminder r = reminderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reminder not found: " + id));
-        if (request.getTitle() != null) r.setTitle(request.getTitle());
-        if (request.getMemo() != null) r.setMemo(request.getMemo());
-        if (request.getDueDate() != null) r.setDueDate(request.getDueDate());
-        if (request.getDueTime() != null) r.setDueTime(request.getDueTime());
-        if (request.getPriority() != null) r.setPriority(request.getPriority());
+        r.update(request.getTitle(), request.getMemo(),
+                request.getDueDate(), request.getDueTime(), request.getPriority());
         if (request.getIsCompleted() != null) {
-            r.setIsCompleted(request.getIsCompleted());
-            r.setCompletedAt(request.getIsCompleted() ? LocalDateTime.now() : null);
+            r.markCompleted(request.getIsCompleted());
         }
         if (request.getListId() != null && !request.getListId().equals(r.getList().getId())) {
             ReminderList newList = listRepository.findById(request.getListId())
                     .orElseThrow(() -> new RuntimeException("List not found: " + request.getListId()));
-            r.setList(newList);
+            r.moveToList(newList);
         }
         r = reminderRepository.save(r);
         return ReminderResponse.from(r);
@@ -101,8 +93,7 @@ public class ReminderService {
     public ReminderResponse toggleComplete(Long id) {
         Reminder r = reminderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reminder not found: " + id));
-        r.setIsCompleted(!r.getIsCompleted());
-        r.setCompletedAt(r.getIsCompleted() ? LocalDateTime.now() : null);
+        r.toggleComplete();
         r = reminderRepository.save(r);
         return ReminderResponse.from(r);
     }

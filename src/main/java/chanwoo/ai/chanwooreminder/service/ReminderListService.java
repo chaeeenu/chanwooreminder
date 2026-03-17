@@ -2,7 +2,7 @@ package chanwoo.ai.chanwooreminder.service;
 
 import chanwoo.ai.chanwooreminder.dto.ReminderListRequest;
 import chanwoo.ai.chanwooreminder.dto.ReminderListResponse;
-import chanwoo.ai.chanwooreminder.entity.ReminderList;
+import chanwoo.ai.chanwooreminder.domain.ReminderList;
 import chanwoo.ai.chanwooreminder.repository.ReminderListRepository;
 import chanwoo.ai.chanwooreminder.repository.ReminderRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,11 +37,7 @@ public class ReminderListService {
 
     @Transactional
     public ReminderListResponse create(ReminderListRequest request) {
-        ReminderList list = ReminderList.builder()
-                .name(request.getName())
-                .color(request.getColor() != null ? request.getColor() : "#007AFF")
-                .icon(request.getIcon() != null ? request.getIcon() : "list.bullet")
-                .build();
+        ReminderList list = ReminderList.create(request.getName(), request.getColor(), request.getIcon());
         list = listRepository.save(list);
         return ReminderListResponse.from(list, 0);
     }
@@ -50,9 +46,7 @@ public class ReminderListService {
     public ReminderListResponse update(Long id, ReminderListRequest request) {
         ReminderList list = listRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("List not found: " + id));
-        if (request.getName() != null) list.setName(request.getName());
-        if (request.getColor() != null) list.setColor(request.getColor());
-        if (request.getIcon() != null) list.setIcon(request.getIcon());
+        list.update(request.getName(), request.getColor(), request.getIcon());
         list = listRepository.save(list);
         int count = reminderRepository.findByListIdAndIsCompleted(id, false).size();
         return ReminderListResponse.from(list, count);

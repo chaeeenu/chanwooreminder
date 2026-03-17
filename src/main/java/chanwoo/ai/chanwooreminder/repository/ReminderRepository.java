@@ -1,6 +1,6 @@
 package chanwoo.ai.chanwooreminder.repository;
 
-import chanwoo.ai.chanwooreminder.entity.Reminder;
+import chanwoo.ai.chanwooreminder.domain.Reminder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;
 import java.util.List;
