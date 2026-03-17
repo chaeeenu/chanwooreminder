@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  --sidebar-bg: #F2F2F7;
+  --main-bg: #FFFFFF;
+  --hover-bg: #EFEFEF;
+  --text-primary: #1C1C1E;
+  --text-secondary: #8E8E93;
+  --separator: #E5E5EA;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+  color: var(--text-primary);
+  background: var(--main-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c7c7cc;
+  border-radius: 3px;
+}
+
+@keyframes checkmark {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.check-animate {
+  animation: checkmark 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-10px); }
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease-in-out forwards;
+}
