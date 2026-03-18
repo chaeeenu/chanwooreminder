@@ -9,6 +9,8 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
 
     List<Reminder> findByListIdAndIsCompleted(Long listId, boolean isCompleted);
 
+    long countByListIdAndIsCompleted(Long listId, boolean isCompleted);
+
     List<Reminder> findByListId(Long listId);
 
     List<Reminder> findByDueDateAndIsCompleted(LocalDate date, boolean isCompleted);
