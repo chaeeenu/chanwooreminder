@@ -38,7 +38,10 @@ export default function ReminderPanel({
   const isSmartCompleted = view.type === 'smart' && view.filter === 'completed';
   const displayReminders = isSmartCompleted ? completedReminders : incompleteReminders;
 
-  const viewIdentity = view.type === 'smart' ? `smart-${view.filter}` : `list-${view.listId}`;
+  const viewIdentity = view.type === 'smart' ? `smart-${view.filter}`
+    : view.type === 'list' ? `list-${view.listId}`
+    : view.type === 'tag' ? `tag-${view.tagId}`
+    : `search-${view.query}`;
 
   return (
     <div className="flex-1 h-screen flex flex-col overflow-hidden">
@@ -47,6 +50,9 @@ export default function ReminderPanel({
         <h1 className="text-3xl font-bold tracking-tight" style={{ color }}>
           {view.type === 'smart' ? filterLabels[view.filter] : title}
         </h1>
+        {view.type === 'search' && (
+          <p className="text-sm text-[#8E8E93] mt-1">{reminders.length}개의 결과</p>
+        )}
       </div>
 
       {/* Reminders */}
@@ -72,6 +78,8 @@ export default function ReminderPanel({
             onSelect={onSelectReminder}
             selected={selectedReminder?.id === r.id}
             highlighted={selectedIndex === idx}
+            showListName={view.type === 'search' || view.type === 'tag' || view.type === 'smart'}
+            searchQuery={view.type === 'search' ? view.query : undefined}
           />
         ))}
 

@@ -38,9 +38,28 @@ public class Reminder {
 
     private LocalDateTime completedAt;
 
+    @ManyToMany
+    @JoinTable(
+            name = "reminder_tag",
+            joinColumns = @JoinColumn(name = "reminder_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    @Builder.Default
+    private java.util.Set<Tag> tags = new java.util.HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Reminder parent;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Reminder> subtasks = new java.util.ArrayList<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "list_id", nullable = false)
     private ReminderList list;
+
+    private Integer sortOrder;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -87,6 +106,26 @@ public class Reminder {
     public void markCompleted(boolean completed) {
         this.isCompleted = completed;
         this.completedAt = completed ? LocalDateTime.now() : null;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void setParent(Reminder parent) {
+        this.parent = parent;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void addTag(Tag tag) {
+        this.tags.add(tag);
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void removeTag(Tag tag) {
+        this.tags.remove(tag);
         this.updatedAt = LocalDateTime.now();
     }
 }

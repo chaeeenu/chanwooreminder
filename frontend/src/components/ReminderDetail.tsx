@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Reminder, Priority } from '@/types';
+import { Reminder, Tag, Priority } from '@/types';
+import * as api from '@/lib/api';
 
 interface Props {
   reminder: Reminder;
@@ -17,6 +18,8 @@ export default function ReminderDetail({ reminder, onUpdate, onDelete, onClose, 
   const [dueDate, setDueDate] = useState(reminder.dueDate || '');
   const [dueTime, setDueTime] = useState(reminder.dueTime?.substring(0, 5) || '');
   const [priority, setPriority] = useState(reminder.priority);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [newTagName, setNewTagName] = useState('');
 
   useEffect(() => {
     setTitle(reminder.title);
@@ -24,6 +27,10 @@ export default function ReminderDetail({ reminder, onUpdate, onDelete, onClose, 
     setDueDate(reminder.dueDate || '');
     setDueTime(reminder.dueTime?.substring(0, 5) || '');
     setPriority(reminder.priority);
+  }, [reminder]);
+
+  useEffect(() => {
+    api.getTags().then(setAllTags).catch(() => {});
   }, [reminder]);
 
   const handleSave = () => {
@@ -133,6 +140,63 @@ export default function ReminderDetail({ reminder, onUpdate, onDelete, onClose, 
             <option value={Priority.MEDIUM}>중간 (!!)</option>
             <option value={Priority.HIGH}>높음 (!!!)</option>
           </select>
+        </div>
+        {/* Tags */}
+        <div>
+          <label className="text-xs font-medium text-[#8E8E93] mb-1.5 block">태그</label>
+          {reminder.tags && reminder.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {reminder.tags.map(tag => (
+                <span key={tag.id} className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full" style={{ backgroundColor: tag.color + '20', color: tag.color }}>
+                  {tag.name}
+                  <button
+                    onClick={async () => {
+                      const updated = await api.removeTagFromReminder(reminder.id, tag.id);
+                      onUpdate(reminder.id, {});
+                    }}
+                    className="hover:opacity-70 text-xs leading-none"
+                  >&times;</button>
+                </span>
+              ))}
+            </div>
+          )}
+          {/* Available tags to add */}
+          {allTags.filter(t => !reminder.tags?.some(rt => rt.id === t.id)).length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {allTags.filter(t => !reminder.tags?.some(rt => rt.id === t.id)).map(tag => (
+                <button
+                  key={tag.id}
+                  onClick={async () => {
+                    await api.addTagToReminder(reminder.id, tag.id);
+                    onUpdate(reminder.id, {});
+                  }}
+                  className="text-xs px-2 py-1 rounded-full border border-dashed transition-colors hover:opacity-80"
+                  style={{ borderColor: tag.color, color: tag.color }}
+                >
+                  + {tag.name}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* Create new tag */}
+          <div className="flex gap-1.5">
+            <input
+              value={newTagName}
+              onChange={e => setNewTagName(e.target.value)}
+              placeholder="새 태그"
+              className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border outline-none"
+              style={{ borderColor: 'var(--separator)' }}
+              onKeyDown={async e => {
+                if (e.key === 'Enter' && newTagName.trim()) {
+                  const tag = await api.createTag({ name: newTagName.trim(), color: '#007AFF' });
+                  await api.addTagToReminder(reminder.id, tag.id);
+                  setNewTagName('');
+                  onUpdate(reminder.id, {});
+                  api.getTags().then(setAllTags);
+                }
+              }}
+            />
+          </div>
         </div>
       </>
     );

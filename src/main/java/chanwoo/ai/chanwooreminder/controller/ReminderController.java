@@ -2,6 +2,7 @@ package chanwoo.ai.chanwooreminder.controller;
 
 import chanwoo.ai.chanwooreminder.dto.ReminderRequest;
 import chanwoo.ai.chanwooreminder.dto.ReminderResponse;
+import chanwoo.ai.chanwooreminder.dto.ReorderRequest;
 import chanwoo.ai.chanwooreminder.service.ports.in.ReminderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +59,17 @@ public class ReminderController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/reminders/reorder")
+    public ResponseEntity<Void> reorder(@RequestBody ReorderRequest request) {
+        reminderService.reorder(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/reminders/search")
+    public ResponseEntity<List<ReminderResponse>> search(@RequestParam String q) {
+        return ResponseEntity.ok(reminderService.search(q));
+    }
+
     @GetMapping("/reminders/today")
     public ResponseEntity<List<ReminderResponse>> getToday() {
         return ResponseEntity.ok(reminderService.findToday());
@@ -76,5 +88,19 @@ public class ReminderController {
     @GetMapping("/reminders/completed")
     public ResponseEntity<List<ReminderResponse>> getCompleted() {
         return ResponseEntity.ok(reminderService.findAll(true));
+    }
+
+    @GetMapping("/reminders/{id}/subtasks")
+    public ResponseEntity<List<ReminderResponse>> getSubtasks(@PathVariable Long id) {
+        return ResponseEntity.ok(reminderService.findSubtasks(id));
+    }
+
+    @PostMapping("/reminders/{id}/subtasks")
+    public ResponseEntity<ReminderResponse> createSubtask(@PathVariable Long id,
+                                                           @RequestBody ReminderRequest request) {
+        ReminderResponse created = reminderService.createSubtask(id, request);
+        return ResponseEntity
+                .created(URI.create("/api/reminders/" + created.getId()))
+                .body(created);
     }
 }

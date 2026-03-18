@@ -225,35 +225,35 @@
 ## Phase 7: 고급 기능
 
 ### 7-1. 검색
-- [ ] Backend: `ReminderRepository`에 `findByTitleContainingIgnoreCase` 추가
-- [ ] Backend: `GET /api/reminders/search?q={keyword}` 엔드포인트 구현
-- [ ] Frontend: 사이드바 상단에 검색 입력 바 추가
-- [ ] Frontend: 검색 결과 실시간 필터링 (debounce 300ms)
-- [ ] Frontend: 검색 결과 하이라이트 표시
+- [x] Backend: `ReminderRepository`에 `findByTitleContainingIgnoreCase` 추가
+- [x] Backend: `GET /api/reminders/search?q={keyword}` 엔드포인트 구현
+- [x] Frontend: 사이드바 상단에 검색 입력 바 추가
+- [x] Frontend: 검색 결과 실시간 필터링 (debounce 300ms)
+- [x] Frontend: 검색 결과 하이라이트 표시
 
 ### 7-2. 리마인더 정렬
-- [ ] Backend: `Reminder` 엔티티에 `sortOrder` (Integer) 필드 추가
-- [ ] Backend: `PUT /api/reminders/reorder` 엔드포인트 (순서 일괄 업데이트)
+- [x] Backend: `Reminder` 엔티티에 `sortOrder` (Integer) 필드 추가
+- [x] Backend: `PUT /api/reminders/reorder` 엔드포인트 (순서 일괄 업데이트)
 - [ ] Frontend: 드래그 앤 드롭 라이브러리 도입 (dnd-kit 또는 react-beautiful-dnd)
 - [ ] Frontend: 정렬 옵션 드롭다운 (수동 / 마감일순 / 우선순위순 / 생성일순)
 
 ### 7-3. 하위 작업 (Subtasks)
-- [ ] Backend: `Reminder` 엔티티에 `parentId` (자기 참조) 추가
-- [ ] Backend: `ReminderRepository`에 `findByParentId` 추가
-- [ ] Backend: 하위 작업 CRUD API 구현
+- [x] Backend: `Reminder` 엔티티에 `parentId` (자기 참조) 추가
+- [x] Backend: `ReminderRepository`에 `findByParentId` 추가
+- [x] Backend: 하위 작업 CRUD API 구현
 - [ ] Frontend: ReminderItem에 들여쓰기 + 접기/펼치기 UI
 - [ ] Frontend: 하위 작업 추가 버튼
 
 ### 7-4. 태그
-- [ ] Backend: `Tag` 엔티티 생성 (id, name, color)
-- [ ] Backend: `Reminder` ↔ `Tag` M:N 관계 설정 (조인 테이블)
-- [ ] Backend: 태그 CRUD API (`/api/tags`)
-- [ ] Backend: 태그별 리마인더 필터 API
-- [ ] Frontend: 리마인더 상세에 태그 추가/제거 UI
-- [ ] Frontend: 사이드바에 태그 필터 섹션
+- [x] Backend: `Tag` 엔티티 생성 (id, name, color)
+- [x] Backend: `Reminder` ↔ `Tag` M:N 관계 설정 (조인 테이블)
+- [x] Backend: 태그 CRUD API (`/api/tags`)
+- [x] Backend: 태그별 리마인더 필터 API
+- [x] Frontend: 리마인더 상세에 태그 추가/제거 UI
+- [x] Frontend: 사이드바에 태그 필터 섹션
 
 ### 7-5. 알림
-- [ ] Frontend: 브라우저 Notification API 권한 요청
-- [ ] Frontend: 마감 시간 도달 시 브라우저 알림 발송
+- [x] Frontend: 브라우저 Notification API 권한 요청
+- [x] Frontend: 마감 시간 도달 시 브라우저 알림 발송
 - [ ] Backend: Spring `@Scheduled`로 예정 알림 조회
 - [ ] Backend: WebSocket 또는 SSE로 실시간 알림 푸시

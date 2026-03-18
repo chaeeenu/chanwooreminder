@@ -15,4 +15,5 @@ public class ReminderRequest {
     private Priority priority;
     private Boolean isCompleted;
     private Long listId;
+    private Long parentId;
 }

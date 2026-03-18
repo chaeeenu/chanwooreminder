@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ReminderList, Reminder, ViewState, Priority } from '@/types';
+import { ReminderList, Reminder, Tag, ViewState, Priority } from '@/types';
 import * as api from '@/lib/api';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useNotification } from '@/hooks/useNotification';
 import Sidebar from '@/components/Sidebar';
 import ReminderPanel from '@/components/ReminderPanel';
 import ReminderDetail from '@/components/ReminderDetail';
@@ -19,6 +20,7 @@ export default function Home() {
   const [showListModal, setShowListModal] = useState(false);
   const [editingList, setEditingList] = useState<ReminderList | null>(null);
   const [smartCounts, setSmartCounts] = useState({ today: 0, scheduled: 0, all: 0, completed: 0 });
+  const [tags, setTags] = useState<Tag[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [navigateIndex, setNavigateIndex] = useState(-1);
@@ -27,11 +29,18 @@ export default function Home() {
 
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1024px)');
+  useNotification(reminders);
 
   // Load lists
   const loadLists = useCallback(async () => {
     const data = await api.getLists();
     setLists(data);
+  }, []);
+
+  // Load tags
+  const loadTags = useCallback(async () => {
+    const data = await api.getTags();
+    setTags(data);
   }, []);
 
   // Load smart counts
@@ -60,17 +69,23 @@ export default function Home() {
         case 'all': data = await api.getAllReminders(); break;
         case 'completed': data = await api.getCompletedReminders(); break;
       }
-    } else {
+    } else if (view.type === 'list') {
       data = await api.getReminders(view.listId);
+    } else if (view.type === 'tag') {
+      data = await api.getRemindersByTag(view.tagId);
+    } else if (view.type === 'search') {
+      data = view.query.trim() ? await api.searchReminders(view.query) : [];
+    } else {
+      data = [];
     }
     setReminders(data);
   }, [view]);
 
-  useEffect(() => { loadLists(); loadSmartCounts(); }, [loadLists, loadSmartCounts]);
+  useEffect(() => { loadLists(); loadSmartCounts(); loadTags(); }, [loadLists, loadSmartCounts, loadTags]);
   useEffect(() => { loadReminders(); }, [loadReminders]);
 
   const refresh = async () => {
-    await Promise.all([loadLists(), loadSmartCounts(), loadReminders()]);
+    await Promise.all([loadLists(), loadSmartCounts(), loadTags(), loadReminders()]);
   };
 
   // Auto-collapse sidebar on tablet
@@ -152,12 +167,24 @@ export default function Home() {
     if (view.type === 'list') {
       return lists.find(l => l.id === view.listId)?.name || '';
     }
+    if (view.type === 'tag') {
+      return tags.find(t => t.id === view.tagId)?.name || '';
+    }
+    if (view.type === 'search') {
+      return `"${view.query}" 검색 결과`;
+    }
     return '';
   };
 
   const getViewColor = () => {
     if (view.type === 'list') {
       return lists.find(l => l.id === view.listId)?.color || '#007AFF';
+    }
+    if (view.type === 'tag') {
+      return tags.find(t => t.id === view.tagId)?.color || '#007AFF';
+    }
+    if (view.type === 'search') {
+      return '#8E8E93';
     }
     const colors = { today: '#007AFF', scheduled: '#FF3B30', all: '#1C1C1E', completed: '#8E8E93' };
     return colors[view.filter];
@@ -247,12 +274,14 @@ export default function Home() {
             <div className="fixed left-0 top-0 bottom-0 z-50 modal-enter">
               <Sidebar
                 lists={lists}
+                tags={tags}
                 view={view}
                 smartCounts={smartCounts}
                 onViewChange={handleViewChange}
                 onAddList={() => { setEditingList(null); setShowListModal(true); }}
                 onEditList={(list) => { setEditingList(list); setShowListModal(true); }}
                 onDeleteList={handleDeleteList}
+                onSearch={(q) => handleViewChange({ type: 'search', query: q })}
               />
             </div>
           </>
@@ -260,6 +289,7 @@ export default function Home() {
       ) : (
         <Sidebar
           lists={lists}
+          tags={tags}
           view={view}
           smartCounts={smartCounts}
           onViewChange={handleViewChange}
@@ -268,6 +298,7 @@ export default function Home() {
           onDeleteList={handleDeleteList}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onSearch={(q) => handleViewChange({ type: 'search', query: q })}
         />
       )}
 

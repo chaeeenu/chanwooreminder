@@ -172,29 +172,29 @@ curl http://localhost:8080/api/lists
 
 ---
 
-## Phase 7: 고급 기능 ⬜
+## Phase 7: 고급 기능 🟡
 
 > 목표: MVP를 넘어 실사용에 가까운 기능을 추가한다.
 
-### 7-1. 검색
-- [ ] Backend: `GET /api/reminders/search?q={keyword}` 엔드포인트
-- [ ] Frontend: 사이드바 상단 검색 바, 실시간 필터링
+### 7-1. 검색 ✅
+- [x] Backend: `GET /api/reminders/search?q={keyword}` 엔드포인트
+- [x] Frontend: 사이드바 상단 검색 바, 실시간 필터링 (debounce 300ms, 하이라이트)
 
-### 7-2. 리마인더 정렬
-- [ ] 수동 순서 (drag & drop) — `sortOrder` 필드 추가
-- [ ] 마감일순 / 우선순위순 / 생성일순 정렬 옵션
+### 7-2. 리마인더 정렬 🟡
+- [x] Backend: `sortOrder` 필드 + `PUT /api/reminders/reorder` 엔드포인트
+- [ ] Frontend: 드래그 앤 드롭 UI + 정렬 옵션 드롭다운
 
-### 7-3. 하위 작업 (Subtasks)
-- [ ] Backend: `Reminder` 자기 참조 관계 (`parentId`)
-- [ ] Frontend: 들여쓰기된 하위 리마인더 표시
+### 7-3. 하위 작업 (Subtasks) 🟡
+- [x] Backend: `Reminder` 자기 참조 관계 (`parentId`) + CRUD API
+- [ ] Frontend: 들여쓰기된 하위 리마인더 표시 + 추가 버튼
 
-### 7-4. 태그
-- [ ] Backend: `Tag` 엔티티 + M:N 관계
-- [ ] Frontend: 리마인더에 태그 추가/제거, 태그별 필터링
+### 7-4. 태그 ✅
+- [x] Backend: `Tag` 엔티티 + M:N 관계 + CRUD API + 태그별 필터
+- [x] Frontend: 리마인더에 태그 추가/제거, 사이드바 태그 필터 섹션
 
-### 7-5. 알림
-- [ ] 브라우저 Notification API로 마감 시간 알림
-- [ ] Backend: 예정된 알림 스케줄링 (Spring Scheduler)
+### 7-5. 알림 🟡
+- [x] Frontend: 브라우저 Notification API 권한 요청 + 마감 시간 알림
+- [ ] Backend: 예정된 알림 스케줄링 (Spring Scheduler + SSE)
 
 ---
 

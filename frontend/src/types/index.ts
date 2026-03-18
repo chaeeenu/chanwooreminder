@@ -13,6 +13,13 @@ export interface ReminderList {
   incompleteCount: number;
 }
 
+export interface Tag {
+  id: number;
+  name: string;
+  color: string;
+  reminderCount: number;
+}
+
 export interface Reminder {
   id: number;
   title: string;
@@ -25,6 +32,9 @@ export interface Reminder {
   listId: number;
   listName: string;
   listColor: string;
+  parentId: number | null;
+  tags: Tag[];
+  sortOrder: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,4 +43,6 @@ export type SmartFilter = 'today' | 'scheduled' | 'all' | 'completed';
 
 export type ViewState =
   | { type: 'smart'; filter: SmartFilter }
-  | { type: 'list'; listId: number };
+  | { type: 'list'; listId: number }
+  | { type: 'tag'; tagId: number }
+  | { type: 'search'; query: string };

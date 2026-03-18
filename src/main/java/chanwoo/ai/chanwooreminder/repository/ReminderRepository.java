@@ -18,4 +18,14 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     List<Reminder> findByDueDateIsNotNullAndIsCompleted(boolean isCompleted);
 
     List<Reminder> findByIsCompleted(boolean isCompleted);
+
+    List<Reminder> findByTitleContainingIgnoreCase(String keyword);
+
+    List<Reminder> findByParentId(Long parentId);
+
+    List<Reminder> findByListIdAndParentIsNull(Long listId);
+
+    List<Reminder> findByListIdAndIsCompletedAndParentIsNull(Long listId, boolean isCompleted);
+
+    List<Reminder> findByTagsId(Long tagId);
 }

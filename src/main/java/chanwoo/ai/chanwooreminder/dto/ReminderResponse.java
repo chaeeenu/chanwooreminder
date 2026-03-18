@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
@@ -22,6 +23,9 @@ public class ReminderResponse {
     private Long listId;
     private String listName;
     private String listColor;
+    private Long parentId;
+    private List<TagResponse> tags;
+    private Integer sortOrder;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -38,6 +42,9 @@ public class ReminderResponse {
                 .listId(r.getList().getId())
                 .listName(r.getList().getName())
                 .listColor(r.getList().getColor())
+                .parentId(r.getParent() != null ? r.getParent().getId() : null)
+                .tags(r.getTags().stream().map(TagResponse::from).toList())
+                .sortOrder(r.getSortOrder())
                 .createdAt(r.getCreatedAt())
                 .updatedAt(r.getUpdatedAt())
                 .build();

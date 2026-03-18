@@ -2,6 +2,7 @@ package chanwoo.ai.chanwooreminder.service;
 
 import chanwoo.ai.chanwooreminder.dto.ReminderRequest;
 import chanwoo.ai.chanwooreminder.dto.ReminderResponse;
+import chanwoo.ai.chanwooreminder.dto.ReorderRequest;
 import chanwoo.ai.chanwooreminder.domain.Reminder;
 import chanwoo.ai.chanwooreminder.domain.ReminderList;
 import chanwoo.ai.chanwooreminder.exception.ResourceNotFoundException;
@@ -65,6 +66,13 @@ public class DefaultReminderService implements ReminderService {
     }
 
     @Override
+    public List<ReminderResponse> search(String keyword) {
+        return reminderRepository.findByTitleContainingIgnoreCase(keyword).stream()
+                .map(ReminderResponse::from)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public ReminderResponse create(Long listId, ReminderRequest request) {
         ReminderList list = getListOrThrow(listId);
@@ -109,6 +117,36 @@ public class DefaultReminderService implements ReminderService {
             throw new ResourceNotFoundException("Reminder", id);
         }
         reminderRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void reorder(ReorderRequest request) {
+        for (ReorderRequest.ReorderItem item : request.getItems()) {
+            Reminder r = getReminderOrThrow(item.getId());
+            r.updateSortOrder(item.getSortOrder());
+            reminderRepository.save(r);
+        }
+    }
+
+    @Override
+    public List<ReminderResponse> findSubtasks(Long parentId) {
+        return reminderRepository.findByParentId(parentId).stream()
+                .map(ReminderResponse::from)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public ReminderResponse createSubtask(Long parentId, ReminderRequest request) {
+        Reminder parent = getReminderOrThrow(parentId);
+        Reminder subtask = Reminder.create(
+                request.getTitle(), request.getMemo(),
+                request.getDueDate(), request.getDueTime(),
+                request.getPriority(), parent.getList());
+        subtask.setParent(parent);
+        subtask = reminderRepository.save(subtask);
+        return ReminderResponse.from(subtask);
     }
 
     private Reminder getReminderOrThrow(Long id) {

@@ -307,4 +307,84 @@ class ReminderControllerTest {
                     .andExpect(jsonPath("$.length()").value(2));
         }
     }
+
+    @Nested
+    @DisplayName("Search - GET /api/reminders/search")
+    class Search {
+
+        @Test
+        @DisplayName("제목에 키워드가 포함된 리마인더를 검색한다")
+        void searchesByTitleKeyword() throws Exception {
+            saveTestReminder(defaultList, "장보기 - 마트", false);
+            saveTestReminder(defaultList, "장보기 - 편의점", false);
+            saveTestReminder(defaultList, "운동하기", false);
+
+            mockMvc.perform(get("/api/reminders/search").param("q", "장보기"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(2));
+        }
+
+        @Test
+        @DisplayName("대소문자를 구분하지 않고 검색한다")
+        void searchesCaseInsensitive() throws Exception {
+            saveTestReminder(defaultList, "Spring Boot 학습", false);
+            saveTestReminder(defaultList, "spring 프로젝트", false);
+
+            mockMvc.perform(get("/api/reminders/search").param("q", "spring"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(2));
+        }
+    }
+
+    @Nested
+    @DisplayName("Reorder - PUT /api/reminders/reorder")
+    class Reorder {
+
+        @Test
+        @DisplayName("리마인더 순서를 일괄 변경한다")
+        void reordersReminders() throws Exception {
+            Reminder r1 = saveTestReminder(defaultList, "첫번째", false);
+            Reminder r2 = saveTestReminder(defaultList, "두번째", false);
+
+            String body = objectMapper.writeValueAsString(Map.of(
+                    "items", java.util.List.of(
+                            Map.of("id", r1.getId(), "sortOrder", 2),
+                            Map.of("id", r2.getId(), "sortOrder", 1)
+                    )
+            ));
+
+            mockMvc.perform(put("/api/reminders/reorder")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isOk());
+
+            mockMvc.perform(get("/api/reminders/{id}", r1.getId()))
+                    .andExpect(jsonPath("$.sortOrder").value(2));
+            mockMvc.perform(get("/api/reminders/{id}", r2.getId()))
+                    .andExpect(jsonPath("$.sortOrder").value(1));
+        }
+    }
+
+    @Nested
+    @DisplayName("Subtasks - 하위 작업 API")
+    class Subtasks {
+
+        @Test
+        @DisplayName("하위 작업을 생성하고 조회한다")
+        void createsAndGetsSubtasks() throws Exception {
+            Reminder parent = saveTestReminder(defaultList, "부모 작업", false);
+
+            mockMvc.perform(post("/api/reminders/{id}/subtasks", parent.getId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("title", "하위 작업1"))))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.title").value("하위 작업1"))
+                    .andExpect(jsonPath("$.parentId").value(parent.getId()));
+
+            mockMvc.perform(get("/api/reminders/{id}/subtasks", parent.getId()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].title").value("하위 작업1"));
+        }
+    }
 }

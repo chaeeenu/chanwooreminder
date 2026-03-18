@@ -3,12 +3,23 @@
 import { useState } from 'react';
 import { Reminder, Priority } from '@/types';
 
+function highlightText(text: string, query: string) {
+  if (!query) return text;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const parts = text.split(regex);
+  return parts.map((part, i) =>
+    regex.test(part) ? <mark key={i} className="bg-yellow-200 rounded-sm px-0.5">{part}</mark> : part
+  );
+}
+
 interface Props {
   reminder: Reminder;
   onToggle: (id: number) => void;
   onSelect: (reminder: Reminder) => void;
   selected: boolean;
   highlighted?: boolean;
+  showListName?: boolean;
+  searchQuery?: string;
 }
 
 const priorityMarks: Record<Priority, string> = {
@@ -18,7 +29,7 @@ const priorityMarks: Record<Priority, string> = {
   [Priority.HIGH]: '!!!',
 };
 
-export default function ReminderItem({ reminder, onToggle, onSelect, selected, highlighted }: Props) {
+export default function ReminderItem({ reminder, onToggle, onSelect, selected, highlighted, showListName, searchQuery }: Props) {
   const [fading, setFading] = useState(false);
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -93,20 +104,37 @@ export default function ReminderItem({ reminder, onToggle, onSelect, selected, h
           <span
             className={`text-[15px] leading-snug ${reminder.isCompleted ? 'line-through text-[#8E8E93]' : ''}`}
           >
-            {reminder.title}
+            {searchQuery ? highlightText(reminder.title, searchQuery) : reminder.title}
           </span>
         </div>
         {reminder.memo && (
           <p className="text-xs text-[#8E8E93] mt-1 truncate">{reminder.memo}</p>
         )}
-        {reminder.dueDate && (
-          <span
-            className="text-xs mt-1 inline-block"
-            style={{ color: isOverdue ? '#FF3B30' : '#8E8E93' }}
-          >
-            {formatDate(reminder.dueDate)}
-            {reminder.dueTime && ` ${reminder.dueTime.substring(0, 5)}`}
-          </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          {reminder.dueDate && (
+            <span
+              className="text-xs mt-1 inline-block"
+              style={{ color: isOverdue ? '#FF3B30' : '#8E8E93' }}
+            >
+              {formatDate(reminder.dueDate)}
+              {reminder.dueTime && ` ${reminder.dueTime.substring(0, 5)}`}
+            </span>
+          )}
+          {showListName && reminder.listName && (
+            <span className="text-xs mt-1 inline-flex items-center gap-1 text-[#8E8E93]">
+              <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: reminder.listColor }} />
+              {reminder.listName}
+            </span>
+          )}
+        </div>
+        {reminder.tags && reminder.tags.length > 0 && (
+          <div className="flex gap-1 mt-1 flex-wrap">
+            {reminder.tags.map(tag => (
+              <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: tag.color + '20', color: tag.color }}>
+                {tag.name}
+              </span>
+            ))}
+          </div>
         )}
       </div>
     </div>
