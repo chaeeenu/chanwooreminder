@@ -21,10 +21,10 @@ export default function SmartFilterCard({ filter, count, active, onClick }: Prop
   return (
     <button
       onClick={onClick}
-      className="flex flex-col justify-between p-3 rounded-xl text-left transition-all"
+      className="flex flex-col justify-between p-4 rounded-xl text-left transition-all"
       style={{
         backgroundColor: active ? '#E8E8ED' : '#FFFFFF',
-        minHeight: '80px',
+        minHeight: '88px',
       }}
     >
       <div className="flex justify-between items-start w-full">
@@ -47,7 +47,7 @@ export default function SmartFilterCard({ filter, count, active, onClick }: Prop
           {count}
         </span>
       </div>
-      <span className="text-xs font-semibold mt-1" style={{ color: '#8E8E93' }}>
+      <span className="text-xs font-semibold mt-2" style={{ color: '#8E8E93' }}>
         {config.label}
       </span>
     </button>

@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { ReminderList, Reminder, ViewState } from '@/types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { ReminderList, Reminder, ViewState, Priority } from '@/types';
 import * as api from '@/lib/api';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Sidebar from '@/components/Sidebar';
 import ReminderPanel from '@/components/ReminderPanel';
 import ReminderDetail from '@/components/ReminderDetail';
 import ListFormModal from '@/components/ListFormModal';
+import { AddReminderInputHandle } from '@/components/AddReminderInput';
 
 export default function Home() {
   const [lists, setLists] = useState<ReminderList[]>([]);
@@ -17,6 +19,14 @@ export default function Home() {
   const [showListModal, setShowListModal] = useState(false);
   const [editingList, setEditingList] = useState<ReminderList | null>(null);
   const [smartCounts, setSmartCounts] = useState({ today: 0, scheduled: 0, all: 0, completed: 0 });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [navigateIndex, setNavigateIndex] = useState(-1);
+
+  const addInputRef = useRef<AddReminderInputHandle | null>(null);
+
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1024px)');
 
   // Load lists
   const loadLists = useCallback(async () => {
@@ -63,6 +73,80 @@ export default function Home() {
     await Promise.all([loadLists(), loadSmartCounts(), loadReminders()]);
   };
 
+  // Auto-collapse sidebar on tablet
+  useEffect(() => {
+    setSidebarCollapsed(isTablet);
+  }, [isTablet]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      const ctrlOrMeta = e.ctrlKey || e.metaKey;
+
+      // Ctrl/Cmd+N: activate add reminder input
+      if (ctrlOrMeta && e.key === 'n') {
+        e.preventDefault();
+        if (view.type === 'list') {
+          addInputRef.current?.activate();
+        }
+        return;
+      }
+
+      // Escape: close detail panel or modal
+      if (e.key === 'Escape') {
+        if (showListModal) {
+          setShowListModal(false);
+          setEditingList(null);
+        } else if (selectedReminder) {
+          setSelectedReminder(null);
+        }
+        setNavigateIndex(-1);
+        return;
+      }
+
+      // Delete/Backspace: delete selected reminder
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedReminder) {
+        e.preventDefault();
+        if (window.confirm('이 미리 알림을 삭제하시겠습니까?')) {
+          handleDeleteReminder(selectedReminder.id);
+        }
+        return;
+      }
+
+      // Arrow navigation
+      const incompleteReminders = reminders.filter(r => !r.isCompleted);
+      const isSmartCompleted = view.type === 'smart' && view.filter === 'completed';
+      const navReminders = isSmartCompleted ? reminders.filter(r => r.isCompleted) : incompleteReminders;
+
+      if (e.key === 'ArrowDown' && navReminders.length > 0) {
+        e.preventDefault();
+        const newIdx = navigateIndex < navReminders.length - 1 ? navigateIndex + 1 : 0;
+        setNavigateIndex(newIdx);
+        setSelectedReminder(navReminders[newIdx]);
+        return;
+      }
+
+      if (e.key === 'ArrowUp' && navReminders.length > 0) {
+        e.preventDefault();
+        const newIdx = navigateIndex > 0 ? navigateIndex - 1 : navReminders.length - 1;
+        setNavigateIndex(newIdx);
+        setSelectedReminder(navReminders[newIdx]);
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [view, selectedReminder, showListModal, reminders, navigateIndex]);
+
+  // Reset navigate index when view changes
+  useEffect(() => {
+    setNavigateIndex(-1);
+  }, [view]);
+
   // View info
   const getViewTitle = () => {
     if (view.type === 'list') {
@@ -85,7 +169,7 @@ export default function Home() {
     await refresh();
     if (selectedReminder?.id === id) {
       try {
-        const updated = await api.updateReminder(id, {});
+        await api.updateReminder(id, {});
         setSelectedReminder(null);
       } catch {
         setSelectedReminder(null);
@@ -93,10 +177,15 @@ export default function Home() {
     }
   };
 
-  const handleAddReminder = async (title: string) => {
+  const handleAddReminder = async (title: string, extras?: { dueDate?: string; priority?: string }) => {
     if (view.type !== 'list') return;
-    await api.createReminder(view.listId, { title });
+    const created = await api.createReminder(view.listId, {
+      title,
+      dueDate: extras?.dueDate,
+      priority: extras?.priority,
+    });
     await refresh();
+    setSelectedReminder(created);
   };
 
   const handleUpdateReminder = async (id: number, data: Partial<Reminder>) => {
@@ -129,17 +218,58 @@ export default function Home() {
     await refresh();
   };
 
+  const handleViewChange = (v: ViewState) => {
+    setView(v);
+    setSelectedReminder(null);
+    setNavigateIndex(-1);
+    if (isMobile) setSidebarOpen(false);
+  };
+
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar
-        lists={lists}
-        view={view}
-        smartCounts={smartCounts}
-        onViewChange={(v) => { setView(v); setSelectedReminder(null); }}
-        onAddList={() => { setEditingList(null); setShowListModal(true); }}
-        onEditList={(list) => { setEditingList(list); setShowListModal(true); }}
-        onDeleteList={handleDeleteList}
-      />
+      {/* Mobile hamburger */}
+      {isMobile && !sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="fixed top-3 left-3 z-30 p-2 rounded-lg bg-white shadow-md"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1C1E" strokeWidth="2" strokeLinecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      )}
+
+      {/* Sidebar */}
+      {isMobile ? (
+        sidebarOpen && (
+          <>
+            <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setSidebarOpen(false)} />
+            <div className="fixed left-0 top-0 bottom-0 z-50 modal-enter">
+              <Sidebar
+                lists={lists}
+                view={view}
+                smartCounts={smartCounts}
+                onViewChange={handleViewChange}
+                onAddList={() => { setEditingList(null); setShowListModal(true); }}
+                onEditList={(list) => { setEditingList(list); setShowListModal(true); }}
+                onDeleteList={handleDeleteList}
+              />
+            </div>
+          </>
+        )
+      ) : (
+        <Sidebar
+          lists={lists}
+          view={view}
+          smartCounts={smartCounts}
+          onViewChange={handleViewChange}
+          onAddList={() => { setEditingList(null); setShowListModal(true); }}
+          onEditList={(list) => { setEditingList(list); setShowListModal(true); }}
+          onDeleteList={handleDeleteList}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+      )}
 
       <ReminderPanel
         view={view}
@@ -152,15 +282,27 @@ export default function Home() {
         onToggleReminder={handleToggleReminder}
         onSelectReminder={setSelectedReminder}
         onAddReminder={handleAddReminder}
+        addInputRef={addInputRef}
+        selectedIndex={navigateIndex}
       />
 
       {selectedReminder && (
-        <ReminderDetail
-          reminder={selectedReminder}
-          onUpdate={handleUpdateReminder}
-          onDelete={handleDeleteReminder}
-          onClose={() => setSelectedReminder(null)}
-        />
+        isMobile ? (
+          <ReminderDetail
+            reminder={selectedReminder}
+            onUpdate={handleUpdateReminder}
+            onDelete={handleDeleteReminder}
+            onClose={() => setSelectedReminder(null)}
+            isMobile
+          />
+        ) : (
+          <ReminderDetail
+            reminder={selectedReminder}
+            onUpdate={handleUpdateReminder}
+            onDelete={handleDeleteReminder}
+            onClose={() => setSelectedReminder(null)}
+          />
+        )
       )}
 
       {showListModal && (

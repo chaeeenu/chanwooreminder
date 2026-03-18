@@ -18,6 +18,9 @@
 - Domain 엔티티 테스트는 JPA 없이 순수 단위 테스트로 작성한다
 - Service 테스트는 `@SpringBootTest` 통합 테스트로 작성한다 (Mock 사용 금지, 실제 DB 사용)
 
+## 작업 완료 후
+- **작업이 완료되면 직후에 plan.md와 tasks.md를 확인하고 완료된 항목을 업데이트한다**
+
 ## 참고 문서
 - spec.md : 기능 명세
 - plan.md : 개발 계획 및 세부 태스크

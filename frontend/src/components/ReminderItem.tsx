@@ -8,6 +8,7 @@ interface Props {
   onToggle: (id: number) => void;
   onSelect: (reminder: Reminder) => void;
   selected: boolean;
+  highlighted?: boolean;
 }
 
 const priorityMarks: Record<Priority, string> = {
@@ -17,7 +18,7 @@ const priorityMarks: Record<Priority, string> = {
   [Priority.HIGH]: '!!!',
 };
 
-export default function ReminderItem({ reminder, onToggle, onSelect, selected }: Props) {
+export default function ReminderItem({ reminder, onToggle, onSelect, selected, highlighted }: Props) {
   const [fading, setFading] = useState(false);
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -51,9 +52,12 @@ export default function ReminderItem({ reminder, onToggle, onSelect, selected }:
 
   return (
     <div
-      className={`flex items-start gap-3 px-4 py-2.5 cursor-pointer transition-colors rounded-lg ${fading ? 'fade-out' : ''}`}
+      className={`flex items-start gap-3.5 px-4 py-3 cursor-pointer transition-colors rounded-lg ${fading ? 'fade-out' : ''}`}
       style={{
-        backgroundColor: selected ? '#E8E8ED' : 'transparent',
+        backgroundColor: selected ? '#E8E8ED' : highlighted ? '#F0F0F5' : 'transparent',
+        outline: highlighted && !selected ? '2px solid #007AFF' : 'none',
+        outlineOffset: '-2px',
+        borderRadius: '8px',
       }}
       onClick={() => onSelect(reminder)}
       onMouseEnter={e => { if (!selected) e.currentTarget.style.backgroundColor = 'var(--hover-bg)'; }}
@@ -62,7 +66,7 @@ export default function ReminderItem({ reminder, onToggle, onSelect, selected }:
       {/* Checkbox */}
       <button
         onClick={handleToggle}
-        className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+        className="w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 checkbox-spring"
         style={{
           borderColor: reminder.isCompleted ? reminder.listColor : reminder.listColor,
           backgroundColor: reminder.isCompleted || fading ? reminder.listColor : 'transparent',
@@ -87,17 +91,17 @@ export default function ReminderItem({ reminder, onToggle, onSelect, selected }:
             </span>
           )}
           <span
-            className={`text-sm leading-tight ${reminder.isCompleted ? 'line-through text-[#8E8E93]' : ''}`}
+            className={`text-[15px] leading-snug ${reminder.isCompleted ? 'line-through text-[#8E8E93]' : ''}`}
           >
             {reminder.title}
           </span>
         </div>
         {reminder.memo && (
-          <p className="text-xs text-[#8E8E93] mt-0.5 truncate">{reminder.memo}</p>
+          <p className="text-xs text-[#8E8E93] mt-1 truncate">{reminder.memo}</p>
         )}
         {reminder.dueDate && (
           <span
-            className="text-xs mt-0.5 inline-block"
+            className="text-xs mt-1 inline-block"
             style={{ color: isOverdue ? '#FF3B30' : '#8E8E93' }}
           >
             {formatDate(reminder.dueDate)}

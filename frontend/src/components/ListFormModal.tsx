@@ -40,6 +40,7 @@ export default function ListFormModal({ editingList, onSave, onClose }: Props) {
   const [name, setName] = useState(editingList?.name || '');
   const [color, setColor] = useState(editingList?.color || '#007AFF');
   const [icon, setIcon] = useState(editingList?.icon || 'list.bullet');
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     if (editingList) {
@@ -49,6 +50,11 @@ export default function ListFormModal({ editingList, onSave, onClose }: Props) {
     }
   }, [editingList]);
 
+  const handleClose = () => {
+    setClosing(true);
+    setTimeout(() => onClose(), 150);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -56,14 +62,17 @@ export default function ListFormModal({ editingList, onSave, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={onClose}>
+    <div
+      className={`fixed inset-0 flex items-center justify-center z-50 transition-opacity duration-200 ${closing ? 'bg-black/0' : 'bg-black/30'}`}
+      onClick={handleClose}
+    >
       <div
-        className="bg-white rounded-2xl w-80 shadow-2xl overflow-hidden"
+        className={`bg-white rounded-2xl w-[340px] shadow-2xl overflow-hidden ${closing ? 'modal-exit' : 'modal-enter'}`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--separator)' }}>
-          <button onClick={onClose} className="text-sm" style={{ color: '#007AFF' }}>취소</button>
+          <button onClick={handleClose} className="text-sm" style={{ color: '#007AFF' }}>취소</button>
           <span className="text-sm font-semibold">{editingList ? '목록 편집' : '새로운 목록'}</span>
           <button
             onClick={handleSubmit}
@@ -75,7 +84,7 @@ export default function ListFormModal({ editingList, onSave, onClose }: Props) {
           </button>
         </div>
 
-        <div className="p-5 flex flex-col items-center gap-4">
+        <div className="p-6 flex flex-col items-center gap-5">
           {/* Icon Preview */}
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center text-3xl"
@@ -95,12 +104,12 @@ export default function ListFormModal({ editingList, onSave, onClose }: Props) {
           />
 
           {/* Colors */}
-          <div className="grid grid-cols-6 gap-2.5 w-full">
+          <div className="grid grid-cols-6 gap-3 w-full">
             {COLORS.map(c => (
               <button
                 key={c}
                 onClick={() => setColor(c)}
-                className="w-8 h-8 rounded-full mx-auto flex items-center justify-center transition-transform"
+                className="w-9 h-9 rounded-full mx-auto flex items-center justify-center transition-transform"
                 style={{
                   backgroundColor: c,
                   transform: color === c ? 'scale(1.2)' : 'scale(1)',
@@ -111,12 +120,12 @@ export default function ListFormModal({ editingList, onSave, onClose }: Props) {
           </div>
 
           {/* Icons */}
-          <div className="grid grid-cols-6 gap-2.5 w-full">
+          <div className="grid grid-cols-6 gap-3 w-full">
             {ICONS.map(i => (
               <button
                 key={i}
                 onClick={() => setIcon(i)}
-                className="w-8 h-8 rounded-full mx-auto flex items-center justify-center text-sm transition-all"
+                className="w-9 h-9 rounded-full mx-auto flex items-center justify-center text-sm transition-all"
                 style={{
                   backgroundColor: icon === i ? color : '#F2F2F7',
                   color: icon === i ? 'white' : '#1C1C1E',

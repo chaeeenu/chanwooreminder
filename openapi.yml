@@ -433,7 +433,7 @@ components:
       properties:
         error:
           type: string
-          example: List not found: 999
+          example: 'List not found: 999'
 
   responses:
     NotFound:

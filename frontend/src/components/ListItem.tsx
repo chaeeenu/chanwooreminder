@@ -7,20 +7,22 @@ interface Props {
   active: boolean;
   onClick: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
+  onDoubleClick?: () => void;
 }
 
-export default function ListItem({ list, active, onClick, onContextMenu }: Props) {
+export default function ListItem({ list, active, onClick, onContextMenu, onDoubleClick }: Props) {
   return (
     <button
       onClick={onClick}
       onContextMenu={onContextMenu}
-      className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-left transition-colors"
+      onDoubleClick={onDoubleClick}
+      className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors"
       style={{ backgroundColor: active ? '#E8E8ED' : 'transparent' }}
       onMouseEnter={e => { if (!active) e.currentTarget.style.backgroundColor = 'var(--hover-bg)'; }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.backgroundColor = 'transparent'; }}
     >
       <div
-        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
         style={{ backgroundColor: list.color }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
